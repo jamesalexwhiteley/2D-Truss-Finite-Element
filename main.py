@@ -1,16 +1,17 @@
 
 # A basic 2D Truss finite element (stiffness matrix mathod) Python script
-# based on a MATLAB script by Angelo Simone, in "An Introduction to the analysis of slender structures", TU Delft , 2011
+# based on "An Introduction to the analysis of slender structures", TU Delft , 2011
 
 import numpy as np 
+import matplotlib.pyplot as plt
 
-coord = np.array([[20,20], [20,0], [0,20], [0,0]]) # nodal co-ordinates 
-# first node is top right, then counterclockwise, members as per order in conn 
+coord = np.array([[20,10], [20,0], [0,10], [0,0]]) # nodal co-ordinates 
+# nodes as per order in coord, members as per order in conn 
 conn = np.array([[2,0], [3,0], [0,1], [2,1], [3,1], [2,3]]) # nodal connectivity
 dofNode = 2 # DOF's per node
 index = np.zeros(4)
 
-E = 10*10^6
+E = 10*10**6
 A = np.zeros(6)
 A[0] = 1
 A[1] = np.sqrt(2) / 2 
@@ -24,14 +25,14 @@ AE = A*E # element axial stiffness
 nNodes= np.size(coord , 0)
 nElms= np.size(conn , 0)
 
-# array Ku = f
+# Ku = f
 nDofs = dofNode*nNodes  # total numbers of DOF's in system
 k = np.zeros((nDofs , nDofs)) # stiffness matrix 
-u = np.zeros((nDofs , 1)) # displacement array 
-f = np.zeros((nDofs , 1)) # external force matrix 
+u = np.zeros((nDofs , 1)) # displacement vector 
+f = np.zeros((nDofs , 1)) # external force vector
 
 constrainedDofs = np.array([4,5,6,7]) # constrained DOF's, i.e. boundary conditions
-f[1] = 500; # external load at node n 
+f[1] = -200; # external load at node n 
 # assessemble stiffness matrix 
 for ind in range(nElms):
     elmConn = conn[ind, :] # element connectivity
@@ -64,29 +65,26 @@ for ind in range(nElms):
             k[ii,jj] = k[ii,jj] + ke[i,j] 
 
 # apply boundary condition and reduce global k
-
 k[constrainedDofs, :] = 0
 k[:, constrainedDofs] = 0
+k[constrainedDofs, constrainedDofs] = 1
 
-
-# print(k[4,5,6,7])
-# k[constrainedDofs, constrainedDofs] = np.identity(constrainedDofs.shape[0])
-k[4:8, 4:8] = np.identity(constrainedDofs.shape[0])
-
-
-a = np.linalg.inv(k)*f
-
+u = np.linalg.inv(k)@f
 
 # plot results 
-# mag = 400
-# hold on
-# for e=1:nElements
-#     x =coord(conn(e , : ) , 1) 
-#     y =coord(conn(e , : ) , 2)
-#     u =a(2*conn(e , : ) -1) 
-#     v =a(2*conn(e , : ) ) 
+mag = 300
+for m in range(nElms):
+    x = coord[conn[m,:], 0] 
+    y = coord[conn[m,:], 1]
+    v = u[2*conn[m,:]]
+    z = u[2*conn[m,:]+1]
 
-#     title( ' Deformed plot ' )
-#     axis equal
-#     plot (x , y , ' r--o ' )
-#     plot (x+mag*u , y+mag*v , ' k-o ')
+    v = np.transpose(v)[0]
+    z = np.transpose(z)[0]
+
+    plt.plot(x, y, color='black', linestyle='--', dashes=(6, 2),  linewidth=1)
+    plt.plot(x+(mag*v), y+(mag*z), color='red')
+
+plt.axis('off') 
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
