@@ -1,5 +1,5 @@
 
-# A basic 2D Truss finite element (stiffness matrix mathod) Python script
+# A basic 2D Truss finite element (stiffness matrix method) Python script
 # based on "An Introduction to the analysis of slender structures", TU Delft , 2011
 
 import numpy as np 
